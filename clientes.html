@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eli & Eli | Perfumes y Decants</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: DM Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"DM Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            navy: '#0B132B',
+                            gold: '#D4AF37',
+                            lightgold: '#F3E5AB',
+                            cream: '#FAF9F6',
+                            dark: '#1C2541'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-cream text-brand-navy font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-brand-navy text-brand-cream sticky top-0 z-50 shadow-md border-b border-brand-gold/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full border border-brand-gold flex items-center justify-center bg-brand-dark">
+                    <i class="fa-solid fa-droplet text-brand-gold"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider uppercase text-brand-gold">Eli & Eli</h1>
+                    <p class="text-xs text-gray-300 tracking-widest uppercase">Perfumes y Decants</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="openCartModal()" class="relative bg-brand-dark border border-brand-gold/40 hover:border-brand-gold text-brand-cream px-4 py-2 rounded-full text-sm font-medium transition flex items-center space-x-2">
+                    <i class="fa-solid fa-bag-shopping text-brand-gold"></i>
+                    <span class="hidden sm:inline">Carrito</span>
+                    <span id="cart-counter" class="bg-brand-gold text-brand-navy text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        
+        <!-- Hero Section / Banner -->
+        <div class="bg-brand-navy text-brand-cream rounded-2xl p-6 sm:p-10 mb-8 shadow-xl relative overflow-hidden border border-brand-gold/30">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="max-w-2xl relative z-10">
+                <span class="text-brand-gold text-xs font-bold tracking-widest uppercase bg-brand-dark px-3 py-1 rounded-full border border-brand-gold/20 inline-block mb-3">Catálogo Exclusivo</span>
+                <h2 class="text-2xl sm:text-4xl font-bold tracking-tight mb-3">La esencia del lujo a tu alcance</h2>
+                <p class="text-gray-300 text-sm sm:text-base mb-6">Explora nuestra colección de decants de 5ml, 10ml y botellas completas. Fragancias de diseñador y clones árabes de alta gama.</p>
+                
+                <!-- Search & Filters -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-grow">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="search-input" oninput="filterProducts()" placeholder="Buscar por marca o nombre de perfume..." class="w-full pl-11 pr-4 py-3 bg-brand-dark/80 border border-brand-gold/30 rounded-xl text-brand-cream placeholder-gray-400 focus:outline-none focus:border-brand-gold text-sm">
+                    </div>
+                    <div class="flex rounded-xl bg-brand-dark/80 p-1 border border-brand-gold/30">
+                        <button onclick="setTab('inmediata')" id="tab-inmediata" class="flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase rounded-lg transition bg-brand-gold text-brand-navy">Inmediata</button>
+                        <button onclick="setTab('pedido')" id="tab-pedido" class="flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase rounded-lg transition text-gray-300 hover:text-white">Sobre Pedido</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Los productos se inyectarán dinámicamente aquí -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-16">
+            <div class="w-16 h-16 bg-brand-navy/10 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-navy">
+                <i class="fa-solid fa-box-open text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-brand-navy mb-1">No se encontraron fragancias</h3>
+            <p class="text-gray-500 text-sm">Intenta con otro término de búsqueda o cambia de categoría.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-brand-navy text-gray-400 text-xs py-8 mt-12 border-t border-brand-gold/20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-brand-gold font-bold tracking-wider mb-1 uppercase">Eli & Eli Perfumes y Decants</p>
+            <p>&copy; 2026 Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Modal Detalle / Notas Olfativas -->
+    <div id="detail-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-brand-cream rounded-2xl max-w-md w-full p-6 shadow-2xl border border-brand-gold/30 relative">
+            <button onclick="closeDetailModal()" class="absolute top-4 right-4 text-gray-400 hover:text-brand-navy transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div id="modal-content">
+                <!-- Contenido dinámico del modal -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Carrito / Checkout WhatsApp -->
+    <div id="cart-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-end">
+        <div class="bg-brand-cream w-full max-w-md h-full shadow-2xl flex flex-col justify-between p-6 border-l border-brand-gold/30 transform transition-transform">
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-brand-navy/10 mb-4">
+                    <h3 class="text-lg font-bold text-brand-navy uppercase tracking-wider flex items-center space-x-2">
+                        <i class="fa-solid fa-bag-shopping text-brand-gold"></i>
+                        <span>Tu Carrito</span>
+                    </h3>
+                    <button onclick="closeCartModal()" class="text-gray-400 hover:text-brand-navy transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div id="cart-items-container" class="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
+                    <!-- Items del carrito -->
+                </div>
+            </div>
+            
+            <div class="border-t border-brand-navy/10 pt-4 mt-4">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-medium text-gray-600 uppercase tracking-wider">Total:</span>
+                    <span id="cart-total-price" class="text-xl font-bold text-brand-navy">$0</span>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Nombre del cliente:</label>
+                        <input type="text" id="customer-name" placeholder="Escribe tu nombre..." class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm text-brand-navy focus:outline-none focus:border-brand-gold">
+                    </div>
+                    <button onclick="checkoutWhatsApp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-sm tracking-wide uppercase shadow-lg transition flex items-center justify-center space-x-2">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        <span>Enviar Pedido por WhatsApp</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Firebase y Lógica -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Configuración Firebase (Reemplazar con tus credenciales si es necesario)
+        const firebaseConfig = {
+            projectId: "eli-eli-perfumes"
+        };
+
+        // Inicialización segura o respaldo local
+        let db = null;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+        } catch (e) {
+            console.log("Firebase no configurado o en modo offline, usando datos locales de respaldo.");
+        }
+
+        // Datos Mock de Respaldo por si Firestore no está conectado
+        const defaultProducts = [
+            {
+                id: "1",
+                brand: "Lattafa",
+                name: "Khamrah",
+                category: "inmediata",
+                gender: "Unisex",
+                image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=600&auto=format&fit=crop",
+                notes: "Canela, Nuez moscada, Bergamota, Dátiles, Praline, Nardos, Vainilla, Haba tonka, Madera de akigala.",
+                prices: { decant5ml: 120, decant10ml: 210, fullBottle: 850 }
+            },
+            {
+                id: "2",
+                brand: "Afnan",
+                name: "9pm",
+                category: "inmediata",
+                gender: "Masculino",
+                image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?q=80&w=600&auto=format&fit=crop",
+                notes: "Manzana, Canela, Lavanda, Flor de azahar del naranjo, Vainilla, Haba tonka, Ámbar, Pachulí.",
+                prices: { decant5ml: 110, decant10ml: 190, fullBottle: 790 }
+            },
+            {
+                id: "3",
+                brand: "Armaf",
+                name: "Club de Nuit Intense Man",
+                category: "pedido",
+                gender: "Masculino",
+                image: "https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=600&auto=format&fit=crop",
+                notes: "Limón, Piña, Bergamota, Grosellas negras, Manzana, Abedul, Jazmín, Rosa, Almizcle, Ámbar gris.",
+                prices: { decant5ml: 100, decant10ml: 180, fullBottle: 950 }
+            }
+        ];
+
+        let products = [...defaultProducts];
+        let cart = [];
+        let currentTab = 'inmediata';
+
+        window.formatCurrency = function(amount) {
+            return '$' + Math.round(Number(amount)).toLocaleString('es-MX');
+        }
+
+        window.setTab = function(tab) {
+            currentTab = tab;
+            const btnInmediata = document.getElementById('tab-inmediata');
+            const btnPedido = document.getElementById('tab-pedido');
+            
+            if(tab === 'inmediata') {
+                btnInmediata.className = "flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase rounded-lg transition bg-brand-gold text-brand-navy";
+                btnPedido.className = "flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase rounded-lg transition text-gray-300 hover:text-white";
+            } else {
+                btnPedido.className = "flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase rounded-lg transition bg-brand-gold text-brand-navy";
+                btnInmediata.className = "flex-1 sm:flex-none px-4 py-2 text-xs font-bold uppercase rounded-lg transition text-gray-300 hover:text-white";
+            }
+            filterProducts();
+        }
+
+        window.renderProducts = function(list) {
+            const grid = document.getElementById('products-grid');
+            const emptyState = document.getElementById('empty-state');
+            grid.innerHTML = '';
+
+            if(list.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            list.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl overflow-hidden shadow-md border border-brand-navy/10 flex flex-col justify-between transition hover:shadow-xl";
+                
+                let pricesHTML = '';
+                if(p.prices) {
+                    if(p.prices.decant5ml) {
+                        pricesHTML += `<div class="flex justify-between items-center text-xs py-1 border-b border-gray-100">
+                            <span class="text-gray-600 font-medium">Decant 5ml</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-brand-navy">${window.formatCurrency(p.prices.decant5ml)}</span>
+                                <button onclick="addToCart('${p.id}', '5ml', ${p.prices.decant5ml})" class="bg-brand-navy text-brand-gold w-7 h-7 rounded-lg hover:bg-brand-gold hover:text-brand-navy transition flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></button>
+                            </div>
+                        </div>`;
+                    }
+                    if(p.prices.decant10ml) {
+                        pricesHTML += `<div class="flex justify-between items-center text-xs py-1 border-b border-gray-100">
+                            <span class="text-gray-600 font-medium">Decant 10ml</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-brand-navy">${window.formatCurrency(p.prices.decant10ml)}</span>
+                                <button onclick="addToCart('${p.id}', '10ml', ${p.prices.decant10ml})" class="bg-brand-navy text-brand-gold w-7 h-7 rounded-lg hover:bg-brand-gold hover:text-brand-navy transition flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></button>
+                            </div>
+                        </div>`;
+                    }
+                    if(p.prices.fullBottle) {
+                        pricesHTML += `<div class="flex justify-between items-center text-xs py-1">
+                            <span class="text-gray-600 font-medium">Botella Completa</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-brand-navy">${window.formatCurrency(p.prices.fullBottle)}</span>
+                                <button onclick="addToCart('${p.id}', 'Botella Completa', ${p.prices.fullBottle})" class="bg-brand-navy text-brand-gold w-7 h-7 rounded-lg hover:bg-brand-gold hover:text-brand-navy transition flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></button>
+                            </div>
+                        </div>`;
+                    }
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="relative h-48 bg-gray-100 overflow-hidden">
+                            <img src="${p.image || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=600&auto=format&fit=crop'}" alt="${p.name}" class="w-full h-full object-cover">
+                            <span class="absolute top-3 left-3 bg-brand-navy/90 text-brand-gold text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-brand-gold/30">${p.gender || 'Unisex'}</span>
+                        </div>
+                        <div class="p-5">
+                            <p class="text-xs font-bold uppercase tracking-widest text-brand-gold mb-1">${p.brand}</p>
+                            <h3 class="text-base font-bold text-brand-navy mb-3">${p.name}</h3>
+                            <div class="space-y-1 mb-4">
+                                ${pricesHTML}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-5 pt-0">
+                        <button onclick="openDetailModal('${p.id}')" class="w-full bg-brand-cream hover:bg-brand-navy/5 text-brand-navy border border-brand-navy/20 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition">Ver Notas Olfativas</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.filterProducts = function() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = products.filter(p => {
+                const matchTab = (p.category || 'inmediata') === currentTab;
+                const matchQuery = p.name.toLowerCase().includes(query) || p.brand.toLowerCase().includes(query);
+                return matchTab && matchQuery;
+            });
+            renderProducts(filtered);
+        }
+
+        window.openDetailModal = function(id) {
+            const product = products.find(p => p.id === id);
+            if(!product) return;
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="text-center mb-4">
+                    <span class="text-xs font-bold uppercase text-brand-gold tracking-widest">${product.brand}</span>
+                    <h3 class="text-xl font-bold text-brand-navy mb-2">${product.name}</h3>
+                    <p class="text-xs text-gray-500 bg-brand-cream/50 py-1 px-3 rounded-full inline-block border border-brand-navy/10">${product.gender || 'Unisex'}</p>
+                </div>
+                <div class="space-y-3 bg-white p-4 rounded-xl border border-brand-navy/10 mb-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-brand-navy flex items-center space-x-2">
+                        <i class="fa-solid fa-droplet text-brand-gold"></i>
+                        <span>Perfil Olfativo / Notas</span>
+                    </h4>
+                    <p class="text-sm text-gray-600 leading-relaxed">${product.notes || 'Notas aromáticas exclusivas de la casa.'}</p>
+                </div>
+                <button onclick="closeDetailModal()" class="w-full bg-brand-navy text-brand-cream py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition">Cerrar</button>
+            `;
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        window.closeDetailModal = function() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        window.addToCart = function(productId, variant, price) {
+            const product = products.find(p => p.id === productId);
+            if(!product) return;
+
+            const cartItemIndex = cart.findIndex(item => item.id === productId && item.variant === variant);
+            if(cartItemIndex > -1) {
+                cart[cartItemIndex].quantity += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    brand: product.brand,
+                    name: product.name,
+                    variant: variant,
+                    price: price,
+                    quantity: 1
+                });
+            }
+            updateCartUI();
+        }
+
+        window.updateCartUI = function() {
+            const counter = document.getElementById('cart-counter');
+            const container = document.getElementById('cart-items-container');
+            const totalPriceEl = document.getElementById('cart-total-price');
+
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            counter.innerText = totalItems;
+
+            container.innerHTML = '';
+            if(cart.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500 text-sm py-8">Tu carrito está vacío</p>`;
+                totalPriceEl.innerText = window.formatCurrency(0);
+                return;
+            }
+
+            let totalSum = 0;
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                totalSum += subtotal;
+
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between bg-white p-3 rounded-xl border border-brand-navy/10";
+                div.innerHTML = `
+                    <div class="pr-2">
+                        <h4 class="text-xs font-bold uppercase text-brand-gold">${item.brand}</h4>
+                        <p class="text-sm font-bold text-brand-navy">${item.name} <span class="text-xs font-normal text-gray-500">(${item.variant})</span></p>
+                        <p class="text-xs font-semibold text-brand-navy mt-1">${window.formatCurrency(item.price)} x ${item.quantity}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeQuantity(${index}, -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 text-brand-navy flex items-center justify-center text-xs"><i class="fa-solid fa-minus"></i></button>
+                        <button onclick="changeQuantity(${index}, 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 text-brand-navy flex items-center justify-center text-xs"><i class="fa-solid fa-plus"></i></button>
+                        <button onclick="removeItem(${index})" class="w-6 h-6 rounded text-red-500 hover:bg-red-50 flex items-center justify-center text-xs ml-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            totalPriceEl.innerText = window.formatCurrency(totalSum);
+        }
+
+        window.changeQuantity = function(index, delta) {
+            cart[index].quantity += delta;
+            if(cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartUI();
+        }
+
+        window.removeItem = function(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        window.openCartModal = function() {
+            document.getElementById('cart-modal').classList.remove('hidden');
+        }
+
+        window.closeCartModal = function() {
+            document.getElementById('cart-modal').classList.add('hidden');
+        }
+
+        window.checkoutWhatsApp = function() {
+            const customerName = document.getElementById('customer-name').value.trim();
+            if(!customerName) {
+                alert("Por favor ingresa tu nombre para continuar con el pedido.");
+                return;
+            }
+            if(cart.length === 0) {
+                alert("Tu carrito está vacío.");
+                return;
+            }
+
+            let message = `Hola, mi nombre es *${customerName}* y me gustaría hacer el siguiente pedido:\n\n`;
+            let totalSum = 0;
+            
+            cart.forEach(item => {
+                const subtotal = item.price * item.quantity;
+                totalSum += subtotal;
+                message += `• ${item.brand} - ${item.name} (${item.variant}) x${item.quantity} - ${window.formatCurrency(subtotal)}\n`;
+            });
+
+            message += `\n*Total a pagar: ${window.formatCurrency(totalSum)}*`;
+
+            const phone = "5218100000000"; // Reemplazar con tu número de WhatsApp
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        }
+
+        // Inicializar productos al cargar
+        renderProducts(products);
+
+        // Si Firestore está disponible, escuchar cambios en tiempo real
+        if(db) {
+            try {
+                onSnapshot(collection(db, "eli_eli_data"), (snapshot) => {
+                    const firestoreProducts = [];
+                    snapshot.forEach((doc) => {
+                        firestoreProducts.push({ id: doc.id, ...doc.data() });
+                    });
+                    if(firestoreProducts.length > 0) {
+                        products = firestoreProducts;
+                        filterProducts();
+                    }
+                }, (error) => {
+                    console.log("Error al sincronizar con Firestore, usando respaldo local.");
+                });
+            } catch(e) {
+                console.log("Error inicializando el listener de Firestore.");
+            }
+        }
+    </script>
+</body>
+</html>
