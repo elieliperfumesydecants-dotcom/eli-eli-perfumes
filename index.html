@@ -13,15 +13,14 @@
     <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js"></script>
     <script>
-      // PEGA AQUÍ la configuración de tu aplicación web de Firebase.
-      // Firebase Console > Project settings > Your apps > Web app > Config.
+      // Credenciales de Firebase integradas
       window.ELI_FIREBASE_CONFIG = {
-        apiKey: "PEGA_TU_API_KEY",
-        authDomain: "TU_PROYECTO.firebaseapp.com",
-        projectId: "TU_PROJECT_ID",
-        storageBucket: "TU_PROYECTO.firebasestorage.app",
-        messagingSenderId: "TU_SENDER_ID",
-        appId: "TU_APP_ID"
+        apiKey: "AIzaSyASWSqZHs9ScsU3MbdXDJipt0FJc308Yzk",
+        authDomain: "eli-eli-perfumes-f6348.firebaseapp.com",
+        projectId: "eli-eli-perfumes-f6348",
+        storageBucket: "eli-eli-perfumes-f6348.firebasestorage.app",
+        messagingSenderId: "757370350345",
+        appId: "1:757370350345:web:dff5be53f2f653f98b81d8"
       };
     </script>
 </head>
@@ -124,7 +123,7 @@
 
             const config = window.ELI_FIREBASE_CONFIG || {};
             const validConfig = config.apiKey && !String(config.apiKey).startsWith('PEGA_') &&
-                                config.projectId && !String(config.projectId).startsWith('TU_');
+                                  config.projectId && !String(config.projectId).startsWith('TU_');
             if (!validConfig || !window.firebase) {
                 console.warn('Firebase no está configurado. Se usará LocalStorage.');
                 this._notifyLocal();
@@ -134,7 +133,6 @@
             try {
                 const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(config);
                 this._db = app.firestore();
-                // CAMBIO PRINCIPAL: Apuntando a la colección 'perfumes' usada por Streamlit
                 const collectionRef = this._db.collection('perfumes');
                 this._unsubscribe = collectionRef.onSnapshot(async (snapshot) => {
                     const cloudData = snapshot.docs.map(doc => ({ __backendId: doc.id, ...doc.data() }));
@@ -165,7 +163,6 @@
         async create(item) {
             item.__backendId = item.__backendId || ('id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5));
             if (this._db && this._cloudReady) {
-                // Los pedidos o nuevos registros se guardan también en 'perfumes' o su respectiva colección según tu backend
                 await this._db.collection('perfumes').doc(item.__backendId).set(item);
             } else {
                 const data = this._readLocal();
