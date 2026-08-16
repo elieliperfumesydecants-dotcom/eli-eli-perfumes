@@ -196,6 +196,15 @@
         }
     };
 
+    // Función auxiliar robusta para obtener la imagen sin importar cómo se llame el campo en Firebase
+    function getPerfumeImage(p) {
+        const rawImg = p.imagen || p.image || p.foto || p.url || p.img || '';
+        if (typeof rawImg === 'string' && rawImg.trim() !== '') {
+            return rawImg.trim();
+        }
+        return 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
+    }
+
     // Variables globales expuestas correctamente en window
     window.globalPerfumesData = [];
     window.fasesData = [];
@@ -204,9 +213,7 @@
         const perfume = window.globalPerfumesData.find(p => p.__backendId === backendId);
         if (!perfume) return;
 
-        const imgSource = (perfume.imagen && perfume.imagen.trim() !== '') 
-            ? perfume.imagen 
-            : 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
+        const imgSource = getPerfumeImage(perfume);
         const disp = perfume.disponibilidad || 'Entrega Inmediata';
         const isSobrePedido = disp === 'Sobre Pedido';
 
@@ -239,11 +246,6 @@
             if (tipo === 'Decant 5ml') return perfume.precio_5ml || 0;
             if (tipo === 'Decant 10ml') return perfume.precio_10ml || 0;
             return perfume.precio_botella || 0;
-        }
-
-        function displayPrice(perfume, price) {
-            const disp = perfume.disponibilidad || 'Entrega Inmediata';
-            return disp === 'Sobre Pedido' ? '---' : `$${formatPrice(price)} MXN`;
         }
 
         function renderPerfumes() {
@@ -279,9 +281,7 @@
             empty.classList.add('hidden');
 
             grid.innerHTML = filteredPerfumes.map(p => {
-                const imgSource = (p.imagen && p.imagen.trim() !== '') 
-                    ? p.imagen 
-                    : 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
+                const imgSource = getPerfumeImage(p);
                 const disp = p.disponibilidad || 'Entrega Inmediata';
                 const isSobrePedido = disp === 'Sobre Pedido';
 
@@ -295,7 +295,7 @@
                         <div class="absolute top-3 left-3 flex gap-1.5 z-10">
                             <span class="px-2.5 py-1 text-xs font-semibold rounded-md border ${dispBadgeClass}">${disp}</span>
                         </div>
-                        <img src="${imgSource}" class="max-h-full max-w-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-300" alt="Perfume">
+                        <img src="${imgSource}" class="max-h-full max-w-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-300" alt="Perfume" onerror="this.src='https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400'">
                         <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <span class="bg-white/90 text-gray-900 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">Ver Descripción</span>
                         </div>
@@ -346,7 +346,6 @@
             const total = getPerfumePrice(perfume, tipo);
             const ultimaFase = window.fasesData.length > 0 ? window.fasesData[window.fasesData.length - 1].nombre : 'F1';
 
-            // 1. Guarda el pedido en Firebase para que llegue directo a tu panel administrativo
             const newOrder = {
                 type: 'order',
                 comprador,
@@ -364,15 +363,13 @@
 
             await window.dataSdk.create(newOrder);
 
-            // 2. Abre WhatsApp automáticamente con la información del pedido para ti (sin código de país)
-            const tuNumeroWhatsApp = "81XXXXXXXX"; // <--- CAMBIA ESTE NÚMERO POR TU NÚMERO LOCAL A 10 DÍGITOS
+            const tuNumeroWhatsApp = "81XXXXXXXX"; // <--- Tu número local a 10 dígitos
             const mensaje = encodeURIComponent(`¡Hola! Quiero apartar el siguiente perfume:\n\n*Perfume:* ${perfume.nombre} (${perfume.marca})\n*Presentación:* ${tipo}\n*Precio:* $${formatPrice(total)} MXN\n*Mi nombre:* ${comprador}\n*Mi teléfono:* ${telefono}`);
             
             form.reset();
             window.open(`https://wa.me/${tuNumeroWhatsApp}?text=${mensaje}`, '_blank');
         };
 
-        // Event Listeners para Disponibilidad
         document.querySelectorAll('.availability-tab').forEach(tab => {
             tab.addEventListener('click', (e) => {
                 document.querySelectorAll('.availability-tab').forEach(t => {
@@ -387,7 +384,6 @@
             });
         });
 
-        // Event Listeners para búsqueda y orden
         const searchInput = document.getElementById('perfume-search');
         const clearSearch = document.getElementById('clear-search');
         const sortSelect = document.getElementById('perfume-sort');
