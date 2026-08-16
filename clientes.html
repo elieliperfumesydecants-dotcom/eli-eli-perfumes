@@ -1,0 +1,443 @@
+<html lang="es">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eli & Eli Perfumes y Decants - Catálogo</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+      body { font-family: 'DM Sans', sans-serif; }
+  </style>
+     <!-- Firebase / Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore-compat.js"></script>
+    <script>
+      // PEGA AQUÍ la configuración de tu aplicación web de Firebase.
+      // Firebase Console > Project settings > Your apps > Web app > Config.
+      window.ELI_FIREBASE_CONFIG = {
+        apiKey: "PEGA_TU_API_KEY",
+        authDomain: "TU_PROYECTO.firebaseapp.com",
+        projectId: "TU_PROJECT_ID",
+        storageBucket: "TU_PROYECTO.firebasestorage.app",
+        messagingSenderId: "TU_SENDER_ID",
+        appId: "TU_APP_ID"
+      };
+    </script>
+</head>
+ <body class="min-h-screen w-full bg-gray-50">
+
+  <!-- Header Limpio para Clientes -->
+  <header class="sticky top-0 z-30 border-b border-gray-200 backdrop-blur-sm bg-white/90 shadow-sm">
+   <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+     <h1 class="text-lg md:text-xl font-bold text-gray-900">Eli & Eli Perfumes y Decants</h1>
+    </div>
+    <span class="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium">Catálogo Oficial</span>
+   </div>
+  </header>
+
+  <!-- Contenido Principal (Catálogo con Pestañas) -->
+  <main class="max-w-7xl mx-auto px-4 py-6">
+   <section id="view-catalog">
+    <div class="mb-6 text-center">
+     <h2 class="text-2xl font-bold text-gray-900">Nuestros Perfumes y Decants</h2>
+     <p class="text-sm text-gray-500 mt-1">Elige tu fragancia favorita y apártala al instante. (Haz clic en la imagen para ver la descripción)</p>
+    </div>
+
+    <!-- Contenedor de Filtros -->
+    <div class="flex flex-col items-center gap-3 mb-8">
+     <!-- Filtro por Disponibilidad -->
+     <div class="inline-flex p-1 bg-gray-200/80 rounded-xl gap-1 overflow-x-auto max-w-full">
+      <button data-availability-filter="todos" class="availability-tab px-3.5 py-1.5 text-xs md:text-sm font-semibold rounded-lg bg-gray-900 text-white shadow-sm transition-all">Todos</button>
+      <button data-availability-filter="Entrega Inmediata" class="availability-tab px-3.5 py-1.5 text-xs md:text-sm font-semibold rounded-lg text-gray-700 hover:text-gray-900 transition-all">Entrega Inmediata</button>
+      <button data-availability-filter="Sobre Pedido" class="availability-tab px-3.5 py-1.5 text-xs md:text-sm font-semibold rounded-lg text-gray-700 hover:text-gray-900 transition-all">Sobre Pedido</button>
+     </div>
+    </div>
+
+    <!-- Buscador, orden y contador -->
+      <div class="w-full max-w-3xl flex flex-col sm:flex-row gap-2 mt-2">
+       <div class="relative flex-1">
+        <input id="perfume-search" type="search" placeholder="Buscar por nombre o marca..." class="w-full border border-gray-300 bg-white rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+        <button id="clear-search" type="button" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1" aria-label="Limpiar búsqueda">✕</button>
+       </div>
+       <select id="perfume-sort" class="border border-gray-300 bg-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+        <option value="marca">Ordenar por marca</option>
+        <option value="nombre">Ordenar por nombre</option>
+       </select>
+      </div>
+      <p id="perfume-count" class="text-xs text-gray-500 mt-1 mb-2">0 perfumes encontrados</p>
+
+      <!-- Grid de Perfumes -->
+    <div id="perfume-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8"></div>
+    <p id="empty-perfumes" class="hidden text-center text-gray-400 py-12">No hay perfumes disponibles con estos filtros por el momento.</p>
+   </section>
+  </main>
+
+  <!-- Modal de Descripción del Perfume -->
+  <div id="perfume-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl relative transform transition-all">
+          <button onclick="closePerfumeModal()" class="absolute top-3 right-3 z-10 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full p-2 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+          <div class="max-h-[85vh] overflow-y-auto p-6">
+              <div class="h-56 bg-gray-50 flex items-center justify-center rounded-xl overflow-hidden mb-4 p-2">
+                  <img id="modal-img" src="" class="max-h-full max-w-full object-contain" alt="Imagen Detalle Perfume">
+              </div>
+              <div class="flex gap-2 mb-2">
+                  <span id="modal-disp" class="px-2.5 py-1 text-xs font-semibold rounded-md border"></span>
+              </div>
+              <span id="modal-brand" class="text-xs font-semibold text-indigo-600 uppercase tracking-wider"></span>
+              <h3 id="modal-title" class="font-bold text-gray-900 text-xl mb-3"></h3>
+              
+              <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+                  <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Descripción y Notas Olfativas:</h4>
+                  <p id="modal-desc" class="text-sm text-gray-600 whitespace-pre-line leading-relaxed">Sin descripción disponible.</p>
+              </div>
+
+              <button onclick="closePerfumeModal()" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 rounded-xl transition-colors text-sm">Cerrar</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Script del Cliente -->
+  <script>
+    (function() {
+        const oldKey = localStorage.getItem('mcfly_perfumes_data');
+        const newKey = localStorage.getItem('eli_eli_perfumes_data');
+        if (oldKey && !newKey) {
+            localStorage.setItem('eli_eli_perfumes_data', oldKey);
+        }
+    })();
+
+    // SDK de lectura/escritura sincronizada
+    window.FIREBASE_ROLE = "cliente";
+    window.dataSdk = {
+        _handler: null,
+        _unsubscribe: null,
+        _initialized: false,
+        _cloudReady: false,
+        init(handler) {
+            this._handler = handler;
+            if (this._initialized) return;
+            this._initialized = true;
+
+            const config = window.ELI_FIREBASE_CONFIG || {};
+            const validConfig = config.apiKey && !String(config.apiKey).startsWith('PEGA_') &&
+                                config.projectId && !String(config.projectId).startsWith('TU_');
+            if (!validConfig || !window.firebase) {
+                console.warn('Firebase no está configurado. Se usará LocalStorage.');
+                this._notifyLocal();
+                return;
+            }
+
+            try {
+                const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(config);
+                this._db = app.firestore();
+                const collectionRef = this._db.collection('eli_eli_data');
+                this._unsubscribe = collectionRef.onSnapshot(async (snapshot) => {
+                    const cloudData = snapshot.docs.map(doc => ({ __backendId: doc.id, ...doc.data() }));
+                    this._cloudReady = true;
+
+                    // Primera migración: solo el administrador puede subir los datos
+                    // locales existentes si Firestore todavía está completamente vacío.
+                    if (false && snapshot.empty) {
+                        const localData = this._readLocal();
+                        if (localData.length) {
+                            await this._migrateLocal(localData);
+                            return;
+                        }
+                    }
+
+                    localStorage.setItem('eli_eli_perfumes_data', JSON.stringify(cloudData));
+                    if (this._handler && typeof this._handler.onDataChanged === 'function') {
+                        this._handler.onDataChanged(cloudData);
+                    }
+                }, (error) => {
+                    console.error('Firestore:', error);
+                    this._notifyLocal();
+                });
+            } catch (error) {
+                console.error('No se pudo iniciar Firebase:', error);
+                this._notifyLocal();
+            }
+        },
+        _readLocal() {
+            try { return JSON.parse(localStorage.getItem('eli_eli_perfumes_data') || '[]'); }
+            catch (e) { return []; }
+        },
+        _notifyLocal() {
+            if (this._handler && typeof this._handler.onDataChanged === 'function') {
+                this._handler.onDataChanged(this._readLocal());
+            }
+        },
+        async _migrateLocal(items) {
+            for (const item of items) {
+                const id = item.__backendId || ('id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5));
+                const copy = { ...item, __backendId: id };
+                await this._db.collection('eli_eli_data').doc(id).set(copy);
+            }
+        },
+        async create(item) {
+            item.__backendId = item.__backendId || ('id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5));
+            if (this._db && this._cloudReady) {
+                await this._db.collection('eli_eli_data').doc(item.__backendId).set(item);
+            } else {
+                const data = this._readLocal();
+                data.push(item);
+                localStorage.setItem('eli_eli_perfumes_data', JSON.stringify(data));
+                this._notifyLocal();
+            }
+            return { isOk: true };
+        },
+        async update(item) {
+            if (this._db && this._cloudReady) {
+                await this._db.collection('eli_eli_data').doc(item.__backendId).set(item);
+            } else {
+                const data = this._readLocal();
+                const index = data.findIndex(x => x.__backendId === item.__backendId);
+                if (index !== -1) data[index] = item;
+                localStorage.setItem('eli_eli_perfumes_data', JSON.stringify(data));
+                this._notifyLocal();
+            }
+            return { isOk: true };
+        },
+        async delete(item) {
+            if (this._db && this._cloudReady) {
+                await this._db.collection('eli_eli_data').doc(item.__backendId).delete();
+            } else {
+                const data = this._readLocal().filter(x => x.__backendId !== item.__backendId);
+                localStorage.setItem('eli_eli_perfumes_data', JSON.stringify(data));
+                this._notifyLocal();
+            }
+            return { isOk: true };
+        }
+    };
+
+    // Variables globales expuestas correctamente en window
+    window.globalPerfumesData = [];
+    window.fasesData = [];
+
+    window.openPerfumeModal = function(backendId) {
+        const perfume = window.globalPerfumesData.find(p => p.__backendId === backendId);
+        if (!perfume) return;
+
+        const imgSource = perfume.imagen || 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
+        const disp = perfume.disponibilidad || 'Entrega Inmediata';
+        const isSobrePedido = disp === 'Sobre Pedido';
+
+        document.getElementById('modal-img').src = imgSource;
+        document.getElementById('modal-brand').textContent = perfume.marca || '';
+        document.getElementById('modal-title').textContent = perfume.nombre || '';
+        document.getElementById('modal-desc').textContent = perfume.descripcion || 'No hay una descripción detallada registrada para este perfume.';
+        
+        const dispEl = document.getElementById('modal-disp');
+        dispEl.textContent = disp;
+        dispEl.className = `px-2.5 py-1 text-xs font-semibold rounded-md border ${isSobrePedido ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`;
+
+        document.getElementById('perfume-modal').classList.remove('hidden');
+    };
+
+    window.closePerfumeModal = function() {
+        document.getElementById('perfume-modal').classList.add('hidden');
+    };
+
+    (function() {
+        let currentAvailabilityFilter = 'todos';
+        let currentSearchTerm = '';
+        let currentSort = 'marca';
+
+        function formatPrice(v) {
+            try { return parseInt(v).toLocaleString('es-MX'); } catch(e) { return '0'; }
+        }
+
+        function getPerfumePrice(perfume, tipo) {
+            if (tipo === 'Decant 5ml') return perfume.precio_5ml || 0;
+            if (tipo === 'Decant 10ml') return perfume.precio_10ml || 0;
+            return perfume.precio_botella || 0;
+        }
+
+        function displayPrice(perfume, price) {
+            const disp = perfume.disponibilidad || 'Entrega Inmediata';
+            return disp === 'Sobre Pedido' ? '---' : `$${formatPrice(price)} MXN`;
+        }
+
+        function renderPerfumes() {
+            const grid = document.getElementById('perfume-grid');
+            const empty = document.getElementById('empty-perfumes');
+            if (!grid || !empty) return;
+
+            const search = currentSearchTerm.toLowerCase().trim();
+
+            const filteredPerfumes = window.globalPerfumesData.filter(p => {
+                const disp = p.disponibilidad || 'Entrega Inmediata';
+                const matchDisp = currentAvailabilityFilter === 'todos' || disp === currentAvailabilityFilter;
+                const nombre = String(p.nombre || '').toLowerCase();
+                const marca = String(p.marca || '').toLowerCase();
+                const matchSearch = !search || nombre.includes(search) || marca.includes(search);
+                return matchDisp && matchSearch;
+            }).sort((a, b) => {
+                const valueA = String(a[currentSort] || '').toLowerCase();
+                const valueB = String(b[currentSort] || '').toLowerCase();
+                return valueA.localeCompare(valueB, 'es', { sensitivity: 'base' });
+            });
+
+            const countEl = document.getElementById('perfume-count');
+            if (countEl) {
+                countEl.textContent = `${filteredPerfumes.length} ${filteredPerfumes.length === 1 ? 'perfume encontrado' : 'perfumes encontrados'}`;
+            }
+
+            if (filteredPerfumes.length === 0) { 
+                grid.innerHTML = ''; 
+                empty.classList.remove('hidden'); 
+                return; 
+            }
+            empty.classList.add('hidden');
+
+            grid.innerHTML = filteredPerfumes.map(p => {
+                const imgSource = p.imagen || 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
+                const disp = p.disponibilidad || 'Entrega Inmediata';
+                const isSobrePedido = disp === 'Sobre Pedido';
+
+                const dispBadgeClass = isSobrePedido 
+                    ? 'bg-purple-50 text-purple-700 border-purple-200' 
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                
+                return `
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col transition-all hover:shadow-md relative">
+                    <div onclick="openPerfumeModal('${p.__backendId}')" class="h-48 bg-gray-50 flex items-center justify-center overflow-hidden p-3 relative cursor-pointer group">
+                        <div class="absolute top-3 left-3 flex gap-1.5 z-10">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-md border ${dispBadgeClass}">${disp}</span>
+                        </div>
+                        <img src="${imgSource}" class="max-h-full max-w-full object-contain rounded-lg group-hover:scale-105 transition-transform duration-300" alt="Perfume">
+                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="bg-white/90 text-gray-900 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">Ver Descripción</span>
+                        </div>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <div class="mb-3">
+                            <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">${p.marca || ''}</span>
+                            <h3 class="font-bold text-gray-900 text-lg">${p.nombre || ''}</h3>
+                        </div>
+                        
+                        <form class="mt-auto flex flex-col gap-2.5" onsubmit="registerClientOrder(event, '${p.__backendId}')">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Tu Nombre Completo</label>
+                                <input type="text" placeholder="Ej. María Pérez" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Número de contacto</label>
+                                <input type="tel" placeholder="Ej. 81 1234 5678" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" required>
+                            </div>
+                            <div class="flex gap-2">
+                                <select class="flex-1 border border-gray-300 rounded-xl px-2.5 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gray-900">
+                                    ${isSobrePedido ? `
+                                        <option value="Botella Completa">Botella Completa (---)</option>
+                                    ` : `
+                                        <option value="Decant 5ml">5ml ($${formatPrice(p.precio_5ml)})</option>
+                                        <option value="Decant 10ml">10ml ($${formatPrice(p.precio_10ml)})</option>
+                                        <option value="Botella Completa">Botella ($${formatPrice(p.precio_botella)})</option>
+                                    `}
+                                </select>
+                                <button type="submit" class="bg-gray-900 text-white px-4 py-2 text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors shadow-sm">Apartar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        window.registerClientOrder = async function(e, perfumeId) {
+            e.preventDefault();
+            const form = e.target;
+            const comprador = form.querySelector('input[type="text"]').value.trim();
+            const telefono = form.querySelector('input[type="tel"]').value.trim();
+            const tipo = form.querySelector('select').value;
+            const perfume = window.globalPerfumesData.find(p => p.__backendId === perfumeId);
+            if (!perfume) return;
+
+            const total = getPerfumePrice(perfume, tipo);
+            const ultimaFase = window.fasesData.length > 0 ? window.fasesData[window.fasesData.length - 1].nombre : 'F1';
+
+            const newOrder = {
+                type: 'order',
+                comprador,
+                telefono,
+                perfume_id: perfumeId,
+                perfume_nombre: perfume.nombre,
+                tipo_venta: tipo,
+                total,
+                pagado: 0,
+                metodo_pago: 'Efectivo',
+                pagos_detallados: { 'Efectivo': 0, 'Transferencia': 0 },
+                fase_nombre: ultimaFase,
+                estado: 'Pendiente'
+            };
+
+            await window.dataSdk.create(newOrder);
+            form.reset();
+            alert(`¡Listo ${comprador}! Tu apartado para "${perfume.nombre}" (${tipo}) se registró correctamente. Nos pondremos en contacto contigo.`);
+        };
+
+        // Event Listeners para Disponibilidad
+        document.querySelectorAll('.availability-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                document.querySelectorAll('.availability-tab').forEach(t => {
+                    t.classList.remove('bg-gray-900', 'text-white', 'shadow-sm');
+                    t.classList.add('text-gray-700', 'hover:text-gray-900');
+                });
+                e.target.classList.add('bg-gray-900', 'text-white', 'shadow-sm');
+                e.target.classList.remove('text-gray-700', 'hover:text-gray-900');
+
+                currentAvailabilityFilter = e.target.getAttribute('data-availability-filter');
+                renderPerfumes();
+            });
+        });
+
+        // Event Listeners para búsqueda y orden
+        const searchInput = document.getElementById('perfume-search');
+        const clearSearch = document.getElementById('clear-search');
+        const sortSelect = document.getElementById('perfume-sort');
+
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                currentSearchTerm = e.target.value;
+                if (clearSearch) clearSearch.classList.toggle('hidden', !currentSearchTerm);
+                renderPerfumes();
+            });
+        }
+
+        if (clearSearch) {
+            clearSearch.addEventListener('click', () => {
+                currentSearchTerm = '';
+                if (searchInput) searchInput.value = '';
+                clearSearch.classList.add('hidden');
+                renderPerfumes();
+                if (searchInput) searchInput.focus();
+            });
+        }
+
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                renderPerfumes();
+            });
+        }
+
+        const handler = {
+            onDataChanged(items) {
+                const allData = items || [];
+                window.globalPerfumesData = allData.filter(x => x.type === 'perfume' || (!x.type && x.precio_botella !== undefined));
+                window.fasesData = allData.filter(x => x.type === 'fase' || (!x.type && x.descripcion !== undefined && x.nombre && !x.perfume_id));
+                renderPerfumes();
+            }
+        };
+
+        window.dataSdk.init(handler);
+        lucide.createIcons();
+    })();
+  </script>
+ </body>
+</html
+>
