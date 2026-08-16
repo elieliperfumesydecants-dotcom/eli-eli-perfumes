@@ -204,7 +204,9 @@
         const perfume = window.globalPerfumesData.find(p => p.__backendId === backendId);
         if (!perfume) return;
 
-        const imgSource = perfume.imagen || 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
+        const imgSource = (perfume.imagen && perfume.imagen.trim() !== '') 
+            ? perfume.imagen 
+            : 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
         const disp = perfume.disponibilidad || 'Entrega Inmediata';
         const isSobrePedido = disp === 'Sobre Pedido';
 
@@ -277,7 +279,9 @@
             empty.classList.add('hidden');
 
             grid.innerHTML = filteredPerfumes.map(p => {
-                const imgSource = p.imagen || 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
+                const imgSource = (p.imagen && p.imagen.trim() !== '') 
+                    ? p.imagen 
+                    : 'https://images.pexels.com/photos/15096784/pexels-photo-15096784.jpeg?auto=compress&cs=tinysrgb&w=400';
                 const disp = p.disponibilidad || 'Entrega Inmediata';
                 const isSobrePedido = disp === 'Sobre Pedido';
 
@@ -342,6 +346,7 @@
             const total = getPerfumePrice(perfume, tipo);
             const ultimaFase = window.fasesData.length > 0 ? window.fasesData[window.fasesData.length - 1].nombre : 'F1';
 
+            // 1. Guarda el pedido en Firebase para que llegue directo a tu panel administrativo
             const newOrder = {
                 type: 'order',
                 comprador,
@@ -358,8 +363,13 @@
             };
 
             await window.dataSdk.create(newOrder);
+
+            // 2. Abre WhatsApp automáticamente con la información del pedido para ti (sin código de país)
+            const tuNumeroWhatsApp = "81XXXXXXXX"; // <--- CAMBIA ESTE NÚMERO POR TU NÚMERO LOCAL A 10 DÍGITOS
+            const mensaje = encodeURIComponent(`¡Hola! Quiero apartar el siguiente perfume:\n\n*Perfume:* ${perfume.nombre} (${perfume.marca})\n*Presentación:* ${tipo}\n*Precio:* $${formatPrice(total)} MXN\n*Mi nombre:* ${comprador}\n*Mi teléfono:* ${telefono}`);
+            
             form.reset();
-            alert(`¡Listo ${comprador}! Tu apartado para "${perfume.nombre}" (${tipo}) se registró correctamente. Nos pondremos en contacto contigo.`);
+            window.open(`https://wa.me/${tuNumeroWhatsApp}?text=${mensaje}`, '_blank');
         };
 
         // Event Listeners para Disponibilidad
